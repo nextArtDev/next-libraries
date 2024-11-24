@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import ReactQueryProvider from '../react-query/provider/ReactQueryProvider'
 
 export const metadata: Metadata = {
@@ -15,7 +15,9 @@ export default function TanstackLayout({
   return (
     <html lang="en">
       <body className={``}>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </ReactQueryProvider>
       </body>
     </html>
   )

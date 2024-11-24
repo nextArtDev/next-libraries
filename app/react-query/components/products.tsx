@@ -1,6 +1,6 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import React, { useState } from 'react'
+import React from 'react'
 import Product from './product'
 import {
   Select,
@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+import { useQueryState } from 'nuqs'
 
 export interface FakerType {
   id: string
@@ -40,16 +42,18 @@ async function getData(sort: string) {
 }
 
 function Products() {
-  const [selectedSort, setSelectedSort] = useState('asc')
+  // const [selectedSort, setSelectedSort] = useState('asc')
+  const [sort, setSort] = useQueryState('sort')
 
-  function useRepos({ sort }: { sort: string }) {
+  // const router = useRouter()
+  function useRepos() {
     return useQuery({
       queryKey: ['repos', sort],
       //Its getData NOT getData()
-      queryFn: () => getData(sort),
+      queryFn: () => getData(sort || 'asc'),
     })
   }
-  const { data, isError, isPending } = useRepos({ sort: selectedSort })
+  const { data, isError, isPending } = useRepos()
   //   console.log({ data })
 
   if (isPending) {
@@ -64,7 +68,12 @@ function Products() {
     <div className="bg-white">
       <div className=" flex flex-col gap-8  mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <h2 className="sr-only">Products</h2>
-        <Select value={selectedSort} onValueChange={(e) => setSelectedSort(e)}>
+        <Select
+          value={sort || 'asc'}
+          onValueChange={(e) => {
+            setSort(e)
+          }}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select an order" />
           </SelectTrigger>

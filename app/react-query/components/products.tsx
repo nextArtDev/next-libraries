@@ -1,7 +1,16 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
-import React from 'react'
+import React, { useState } from 'react'
 import Product from './product'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export interface FakerType {
   id: string
@@ -15,10 +24,10 @@ export interface FakerType {
     count: number
   }
 }
-const BASE_URL = 'https://fakestoreapi.com' //https://fakestoreapi.com/
+export const BASE_URL = 'https://fakestoreapi.com' //https://fakestoreapi.com/
 
-async function getData() {
-  const url = `${BASE_URL}/products`
+async function getData(sort: string) {
+  const url = `${BASE_URL}/products?sort=${sort}`
 
   const response = await fetch(url)
 
@@ -30,15 +39,17 @@ async function getData() {
   return data
 }
 
-function useRepos() {
-  return useQuery({
-    queryKey: ['repos'],
-    //Its getData NOT getData()
-    queryFn: getData,
-  })
-}
 function Products() {
-  const { data, isError, isPending } = useRepos()
+  const [selectedSort, setSelectedSort] = useState('asc')
+
+  function useRepos({ sort }: { sort: string }) {
+    return useQuery({
+      queryKey: ['repos', sort],
+      //Its getData NOT getData()
+      queryFn: () => getData(sort),
+    })
+  }
+  const { data, isError, isPending } = useRepos({ sort: selectedSort })
   //   console.log({ data })
 
   if (isPending) {
@@ -51,8 +62,20 @@ function Products() {
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+      <div className=" flex flex-col gap-8  mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <h2 className="sr-only">Products</h2>
+        <Select value={selectedSort} onValueChange={(e) => setSelectedSort(e)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select an order" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Order</SelectLabel>
+              <SelectItem value="asc">asc</SelectItem>
+              <SelectItem value="desc">desc</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
         <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
           {data.map((repo: FakerType) => (

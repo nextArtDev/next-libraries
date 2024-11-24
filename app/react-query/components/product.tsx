@@ -21,6 +21,7 @@ function Product({ product }: Props) {
           className=" h-full w-full object-cover object-center sm:h-full sm:w-full"
         />
       </div>
+
       <div className="flex flex-1 flex-col space-y-2 p-4">
         <h3 className="text-sm font-medium text-gray-900">
           <Link href={`${BASE_URL}/products/${product.id}`}>

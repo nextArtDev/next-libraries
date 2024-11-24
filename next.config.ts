@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'fakestoreapi.com',
+        // hostname: 'i.imgur.com',
       },
     ],
   },

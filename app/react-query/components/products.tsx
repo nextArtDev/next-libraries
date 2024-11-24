@@ -28,6 +28,20 @@ export interface FakerType {
 }
 export const BASE_URL = 'https://fakestoreapi.com' //https://fakestoreapi.com/
 
+// export interface FakerType {
+//   id: number
+//   title: string
+//   price: number
+//   description: string
+//   category: {
+//     id: number
+//     name: string
+//     image: string
+//   }
+//   images: string[]
+// }
+// export const BASE_URL = 'https://api.escuelajs.co/api/v1'
+
 async function getData(sort: string) {
   const url = `${BASE_URL}/products?sort=${sort}`
 
@@ -38,9 +52,9 @@ async function getData(sort: string) {
   }
 
   const data = await response.json()
+
   return data
 }
-
 function Products() {
   // const [selectedSort, setSelectedSort] = useState('asc')
   const [sort, setSort] = useQueryState('sort')

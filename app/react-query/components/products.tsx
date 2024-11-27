@@ -90,8 +90,15 @@ export const BASE_URL = 'https://dummyjson.com' //https://fakestoreapi.com/
 // https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
 async function getData(sort: string, search: string) {
   // const url = `${BASE_URL}/products?sortBy=price&order${sort}/search?q=${search}`
-  const url = `${BASE_URL}/products/search?q=${search}`
-  console.log({ url })
+  let url
+  if (search) {
+    url = `${BASE_URL}/products/search?q=${search}`
+  } else if (sort) {
+    url = `${BASE_URL}/products?sortBy=price&order${sort}`
+  } else {
+    url = `${BASE_URL}/products`
+  }
+  // console.log({ url })
 
   const response = await fetch(url)
 
@@ -109,8 +116,8 @@ function Products() {
   const { replace } = useRouter()
   // const searchRef = useRef()
   const search = searchParams.get('search')
-  console.log({ pathname })
-  console.log({ searchParams })
+  // console.log({ pathname })
+  // console.log({ searchParams })
 
   // const [selectedSort, setSelectedSort] = useState('asc')
   const [sort, setSort] = useQueryState('sort')
@@ -125,6 +132,8 @@ function Products() {
       queryKey: ['repos', sort, search],
       //Its getData NOT getData()
       queryFn: () => getData(sort, search),
+      staleTime: 5000, // 5 seconds
+      gcTime: 3000, // 3 seconds instead of default 5 min
     })
   }
   const { data, isError, isPending } = useRepos()
@@ -136,6 +145,7 @@ function Products() {
       term.preventDefault()
 
       const params = new URLSearchParams(searchParams)
+      // console.log({ params })
       if (term.target.value) {
         params.set('search', term.target.value)
       } else {
@@ -187,7 +197,7 @@ function Products() {
             </SelectContent>
           </Select>
         </article>
-
+        <h2>{data.products.length}</h2>
         <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
           {data.products.map((repo: FakerType) => (
             <Product key={repo.id} product={repo} />

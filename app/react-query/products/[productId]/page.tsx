@@ -1,7 +1,7 @@
 import React from 'react'
 import ProductDetails from '../../components/product-details'
 
-async function page({ params }: { params: string }) {
+async function page({ params }: { params: { productId: string } }) {
   const { productId } = await params
 
   return (

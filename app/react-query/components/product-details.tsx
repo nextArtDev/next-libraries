@@ -43,7 +43,7 @@ function ProductDetails({ id }: Props) {
     })
   }
   const { data, isError, isPending, isFetching, isStale, refetch } = useRepos()
-
+  // console.log(data.thumbnail)
   if (isPending) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -152,7 +152,7 @@ function ProductDetails({ id }: Props) {
           <Image
             fill
             alt={data.title}
-            src={data.image}
+            src={data.thumbnail}
             className="h-full w-full object-contain object-center"
           />
         </div>

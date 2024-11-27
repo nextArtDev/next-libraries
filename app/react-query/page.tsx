@@ -1,5 +1,5 @@
 import React from 'react'
-import Books from './components/products'
+import Products from './components/products'
 
 // export interface SearchParams {
 //   [key: string]: string | string[] | undefined
@@ -11,7 +11,7 @@ async function page() {
   // console.log(params.sort)
   return (
     <div>
-      <Books />
+      <Products />
     </div>
   )
 }

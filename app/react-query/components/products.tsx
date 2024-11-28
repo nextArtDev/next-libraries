@@ -10,12 +10,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useQuery } from '@tanstack/react-query'
+import { formatDistance } from 'date-fns'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryState } from 'nuqs'
 import { ChangeEvent } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import Product from './product'
-import { formatDistance, subDays, format } from 'date-fns'
 export interface FakerType {
   id: number
   title: string

@@ -1,7 +1,5 @@
 'use client'
-import { useQuery } from '@tanstack/react-query'
-import React, { ChangeEvent, useRef } from 'react'
-import Product from './product'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -11,11 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useQuery } from '@tanstack/react-query'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { parseAsString, useQueryState } from 'nuqs'
-import { Input } from '@/components/ui/input'
+import { useQueryState } from 'nuqs'
+import { ChangeEvent } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
-
+import Product from './product'
+import { formatDistance, subDays, format } from 'date-fns'
 export interface FakerType {
   id: number
   title: string
@@ -88,7 +88,7 @@ export const BASE_URL = 'https://dummyjson.com' //https://fakestoreapi.com/
 // export const BASE_URL = 'https://api.escuelajs.co/api/v1'
 
 // https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
-async function getData(sort: string, search: string) {
+async function getData(sort: string | null, search: string | null) {
   // const url = `${BASE_URL}/products?sortBy=price&order${sort}/search?q=${search}`
   let url
   if (search) {
@@ -134,9 +134,16 @@ function Products() {
       queryFn: () => getData(sort, search),
       staleTime: 5000, // 5 seconds
       gcTime: 3000, // 3 seconds instead of default 5 min
+      refetchInterval: 5000,
+      // refetchInterval: () => {
+      //   if (search) {
+      //     return false
+      //   }
+      //   return 1000 // 3 seconds
+      // },
     })
   }
-  const { data, isError, isPending } = useRepos()
+  const { data, isError, isPending, dataUpdatedAt } = useRepos()
   // console.log({ data })
 
   const handleSearch = useDebouncedCallback(
@@ -197,7 +204,13 @@ function Products() {
             </SelectContent>
           </Select>
         </article>
-        <h2>{data.products.length}</h2>
+        <h2>
+          {data.products.length} Products, last update at:{' '}
+          {formatDistance(dataUpdatedAt, new Date(), {
+            addSuffix: true,
+            includeSeconds: true,
+          })}
+        </h2>
         <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
           {data.products.map((repo: FakerType) => (
             <Product key={repo.id} product={repo} />

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { formatDistance } from 'date-fns'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryState } from 'nuqs'
@@ -110,6 +110,19 @@ async function getData(sort: string | null, search: string | null) {
   // console.log({ data })
   return data
 }
+async function getCategories() {
+  const url = `${BASE_URL}/products/categories`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Unable to fetch')
+  }
+
+  const categories = await response.json()
+  // console.log({ categories })
+  return categories
+}
+
 function Products() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -127,24 +140,65 @@ function Products() {
   // )
 
   // const router = useRouter()
+  // function useRepos() {
+  //   return useQuery({
+  //     queryKey: ['repos', sort, search],
+  //     //Its getData NOT getData()
+  //     queryFn: () => getData(sort, search),
+  //     staleTime: 5000, // 5 seconds
+  //     gcTime: 3000, // 3 seconds instead of default 5 min
+  //     refetchInterval: 5000,
+  //     // refetchInterval: () => {
+  //     //   if (search) {
+  //     //     return false
+  //     //   }
+  //     //   return 1000 // 3 seconds
+  //     // },
+  //   })
+  // }
   function useRepos() {
-    return useQuery({
-      queryKey: ['repos', sort, search],
-      //Its getData NOT getData()
-      queryFn: () => getData(sort, search),
-      staleTime: 5000, // 5 seconds
-      gcTime: 3000, // 3 seconds instead of default 5 min
-      refetchInterval: 5000,
-      // refetchInterval: () => {
-      //   if (search) {
-      //     return false
-      //   }
-      //   return 1000 // 3 seconds
-      // },
+    return useQueries({
+      queries: [
+        {
+          queryKey: ['repos', sort, search],
+          //Its getData NOT getData()
+          queryFn: () => getData(sort, search),
+          staleTime: 5000, // 5 seconds
+          gcTime: 3000, // 3 seconds instead of default 5 min
+          // refetchInterval: 5000,
+          // refetchInterval: () => {
+          //   if (search) {
+          //     return false
+          //   }
+          //   return 1000 // 3 seconds
+          // },
+        },
+        {
+          queryKey: ['categories'],
+          queryFn: () => getCategories(),
+          // refetchInterval: 50000,
+        },
+      ],
+      combine: (queries) => {
+        const isPending = queries.some((query) => query.status === 'pending')
+        const isError = queries.some((query) => query.status === 'error')
+        const dataUpdatedAt = queries.map((query) => query.dataUpdatedAt)
+        //order of queries matters here
+        const [data, categories] = queries.map((query) => query.data)
+
+        return {
+          isPending,
+          isError,
+          dataUpdatedAt,
+          data,
+          categories,
+        }
+      },
     })
   }
-  const { data, isError, isPending, dataUpdatedAt } = useRepos()
-  // console.log({ data })
+  const { data, categories, isError, isPending, dataUpdatedAt } = useRepos()
+  console.log({ categories })
+  console.log({ dataUpdatedAt })
 
   const handleSearch = useDebouncedCallback(
     (term: ChangeEvent<HTMLInputElement>) => {
@@ -206,7 +260,7 @@ function Products() {
         </article>
         <h2>
           {data.products.length} Products, last update at:{' '}
-          {formatDistance(dataUpdatedAt, new Date(), {
+          {formatDistance(dataUpdatedAt[0], new Date(), {
             addSuffix: true,
             includeSeconds: true,
           })}

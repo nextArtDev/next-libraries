@@ -1,7 +1,7 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { BASE_URL } from './products'
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import {
   CheckIcon,
@@ -16,6 +16,7 @@ import {
   StaleMessage,
   UpToDate,
 } from './stale-messages'
+import { useInView } from 'framer-motion'
 
 type Props = { id: string }
 
@@ -34,14 +35,41 @@ async function getData(id: string) {
 }
 
 function ProductDetails({ id }: Props) {
+  const queryClient = useQueryClient()
+
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: false })
+
   function useRepos() {
     return useQuery({
       queryKey: ['product', { id }],
       //Its getData NOT getData()
       queryFn: () => getData(id),
-      staleTime: 5000,
+      staleTime: Infinity,
     })
   }
+
+  function getProductQueryOptions() {
+    return queryOptions({
+      queryKey: ['product', id],
+      queryFn: () => getData(id),
+
+      staleTime: Infinity,
+      gcTime: 10000, // I added
+    })
+  }
+  useEffect(() => {
+    console.log('sed')
+    if (inView) {
+      //   queryClient.prefetchQuery(['product', product.id], () =>
+      //     fetchProduct(product.id)
+      //   )
+      queryClient.prefetchQuery(getProductQueryOptions())
+    } else {
+      // Remove the cached product data when it goes out of view
+      queryClient.removeQueries(getProductQueryOptions())
+    }
+  }, [inView, id, queryClient])
   const { data, isError, isPending, isFetching, isStale, refetch } = useRepos()
   // console.log(data.thumbnail)
   if (isPending) {
@@ -59,7 +87,10 @@ function ProductDetails({ id }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
+    <div
+      ref={ref}
+      className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8"
+    >
       {/* Product details */}
       <div className="lg:max-w-lg lg:self-end">
         {/* <nav aria-label="Breadcrumb">

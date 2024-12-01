@@ -103,7 +103,7 @@ async function getData(
   } else if (sort) {
     url = `${BASE_URL}/products?sortBy=price&order${sort}`
   } else if (activeCategory) {
-    url = `${BASE_URL}/products/${activeCategory}`
+    url = `${BASE_URL}/products/category/${activeCategory}`
   } else {
     url = `${BASE_URL}/products`
   }
@@ -271,7 +271,7 @@ function Products() {
           </article>
           <article className="py-8 flex flex-wrap gap-4 items-center justify-center w-full ">
             {/* {getRandomElements(categories, 5).map((category: any) => ( */}
-            {categories.slice(0, 5).map((category: any) => (
+            {categories.slice(10, 15).map((category: any) => (
               <Button
                 variant={
                   activeCategory === category.name ? 'default' : 'outline'
@@ -299,9 +299,9 @@ function Products() {
           <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
             {data.products.map((repo: FakerType, i: number) => (
               <motion.div
-                initial={{ opacity: 0, x: i % 2 === 0 ? 100 : -100 }}
+                initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: i % 2 === 0 ? -100 : 100 }}
+                exit={{ opacity: 0, x: -50 }}
                 transition={{
                   duration: 0.5,
                   delayChildren: 0.5,

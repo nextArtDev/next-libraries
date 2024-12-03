@@ -28,7 +28,7 @@ function SimplePagination({
         isPlaceholderData && 'opacity-40'
       )}
     >
-      {page > 1 && (
+      {page > 0 && (
         <Link
           // onClick={() => setPage((old) => Math.max(old - 1, 0))}
           href={`${pathname}/?page=${page - 1}`}

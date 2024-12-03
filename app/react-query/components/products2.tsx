@@ -12,7 +12,7 @@ import {
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryState } from 'nuqs'
-import { ChangeEvent, Suspense } from 'react'
+import { ChangeEvent, Suspense, useEffect } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import Product from './product'
 import { formatDistance, subDays, format } from 'date-fns'
@@ -66,10 +66,11 @@ import { cn } from '@/lib/utils'
 const PAGE_SIZE = 6
 export const BASE_URL = 'https://dummyjson.com' //https://
 // https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
+
 async function getData(
-  sort: string | null,
-  search: string | null,
-  page: number
+  sort?: string | null,
+  search?: string | null,
+  page?: number
 ) {
   // const url = `${BASE_URL}/products?sortBy=price&order${sort}/search?q=${search}`
   let url
@@ -121,6 +122,7 @@ function Products() {
 
   // const [selectedSort, setSelectedSort] = useState('asc')
   const [sort, setSort] = useQueryState('sort')
+
   // const [search, setSearch] = useQueryState(
   //   'search',
   //   parseAsString.withOptions({ shallow: false }) // Previous options object goes here
@@ -161,6 +163,24 @@ function Products() {
       gcTime: 10000, // I added
     })
   }
+  function getQueryOptions({
+    sort,
+    search,
+    page = 1,
+  }: {
+    sort?: string
+    search?: string
+    page?: number
+  }) {
+    return queryOptions({
+      queryKey: ['repos', { sort, search, page }],
+      //Its getData NOT getData()
+      queryFn: () => getData(sort, search, page),
+      staleTime: 5000, // 5 seconds
+      gcTime: 3000, // 3 seconds instead of default 5 min
+      placeholderData: (previousData) => previousData,
+    })
+  }
 
   const {
     data,
@@ -171,7 +191,11 @@ function Products() {
     isPlaceholderData,
   } = useRepos()
   // console.log({ data })
-
+  useEffect(() => {
+    if (page < data?.products.length) {
+      queryClient.prefetchQuery(getQueryOptions({ page: page + 1 }))
+    }
+  }, [data?.products.length, page, queryClient])
   const handleSearch = useDebouncedCallback(
     (term: ChangeEvent<HTMLInputElement>) => {
       // console.log(term.target.value)

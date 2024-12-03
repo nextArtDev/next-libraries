@@ -12,7 +12,7 @@ import {
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryState } from 'nuqs'
-import { ChangeEvent } from 'react'
+import { ChangeEvent, Suspense } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
 import Product from './product'
 import { formatDistance, subDays, format } from 'date-fns'
@@ -59,10 +59,18 @@ export interface FakerType {
 }
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import Paginator from './paginator'
+import SimplePagination from './simple-pagination'
+import { cn } from '@/lib/utils'
 
+const PAGE_SIZE = 6
 export const BASE_URL = 'https://dummyjson.com' //https://
 // https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
-async function getData(sort: string | null, search: string | null) {
+async function getData(
+  sort: string | null,
+  search: string | null,
+  page: number
+) {
   // const url = `${BASE_URL}/products?sortBy=price&order${sort}/search?q=${search}`
   let url
   if (search) {
@@ -70,7 +78,7 @@ async function getData(sort: string | null, search: string | null) {
   } else if (sort) {
     url = `${BASE_URL}/products?sortBy=price&order${sort}`
   } else {
-    url = `${BASE_URL}/products`
+    url = `${BASE_URL}/products?limit=${PAGE_SIZE}&skip=${page * PAGE_SIZE}`
   }
   // console.log({ url })
 
@@ -106,6 +114,8 @@ function Products() {
   const { replace } = useRouter()
   // const searchRef = useRef()
   const search = searchParams.get('search')
+  const page = Number(searchParams.get('page'))
+
   // console.log({ pathname })
   // console.log({ searchParams })
 
@@ -119,12 +129,14 @@ function Products() {
   // const router = useRouter()
   function useRepos() {
     return useQuery({
-      queryKey: ['repos', sort, search],
+      queryKey: ['repos', sort, search, page],
       //Its getData NOT getData()
-      queryFn: () => getData(sort, search),
+      queryFn: () => getData(sort, search, page),
       staleTime: 5000, // 5 seconds
       gcTime: 3000, // 3 seconds instead of default 5 min
-      refetchInterval: 5000,
+      placeholderData: (previousData) => previousData,
+
+      // refetchInterval: 5000,
       // refetchInterval: () => {
       //   if (search) {
       //     return false
@@ -150,7 +162,14 @@ function Products() {
     })
   }
 
-  const { data, isError, isPending, dataUpdatedAt } = useRepos()
+  const {
+    data,
+    isError,
+    isPending,
+    dataUpdatedAt,
+    isFetching,
+    isPlaceholderData,
+  } = useRepos()
   // console.log({ data })
 
   const handleSearch = useDebouncedCallback(
@@ -170,9 +189,9 @@ function Products() {
     300
   )
 
-  if (isPending) {
-    return <div>Loading...</div>
-  }
+  // if (isPending) {
+  //   return <div>Loading...</div>
+  // }
 
   if (isError) {
     return <div>Error fetching data 😔</div>
@@ -181,7 +200,7 @@ function Products() {
   // function handleSearch(term: ChangeEvent<HTMLInputElement>) {
 
   return (
-    <div className="bg-white">
+    <div className={cn('bg-white', isPlaceholderData ? 'opacity-50' : '')}>
       <div className=" flex flex-col gap-8  mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <h2 className="sr-only">Products</h2>
         <section className="flex flex-col w-full h-full">
@@ -211,10 +230,30 @@ function Products() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <SimplePagination
+              PAGE_SIZE={PAGE_SIZE}
+              isPlaceholderData={isPlaceholderData}
+              page={page}
+              pathname={pathname}
+              isFetching={isFetching}
+              length={data?.products?.length}
+            />
+            {/* <Paginator
+              currentPage={1}
+              onPageChange={() => {}}
+              showPreviousNext
+              totalPages={5}
+            /> */}
+            {/* <Paginator
+              currentPage={table.getState().pagination.pageIndex + 1}
+              totalPages={table.getPageCount()}
+              onPageChange={(pageNumber) => table.setPageIndex(pageNumber - 1)}
+              showPreviousNext
+            /> */}
           </article>
         </section>
         <h2>
-          {data.products.length} Products, last update at:{' '}
+          {data?.products.length} Products, last update at:{' '}
           {formatDistance(dataUpdatedAt, new Date(), {
             addSuffix: true,
             includeSeconds: true,
@@ -222,7 +261,7 @@ function Products() {
         </h2>
         <AnimatePresence mode="wait">
           <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
-            {data.products.map((repo: FakerType) => (
+            {data?.products?.map((repo: FakerType) => (
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}

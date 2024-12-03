@@ -1,6 +1,6 @@
 import React from 'react'
-import Products from './components/products-inView'
-// import Products from './components/products2'
+// import Products from './components/products-inView'
+import Products from './components/products2'
 // import Products from './components/products'
 
 // export interface SearchParams {

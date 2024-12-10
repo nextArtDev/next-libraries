@@ -18,6 +18,7 @@ import { useDebouncedCallback } from 'use-debounce'
 import Product from './product'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useIntersectionObserver } from '@uidotdev/usehooks'
+import ScrollToTop from 'react-scroll-to-top'
 
 import { Button } from '@/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -113,14 +114,18 @@ function Products() {
     return useInfiniteQuery({
       queryKey: ['repos', sort, search],
       //Its getData NOT getData()
-      queryFn: () => getData(sort, search, Number(page)),
+      queryFn: ({ pageParam }) => getData(sort, search, Number(pageParam - 1)),
       staleTime: 5000,
       initialPageParam: 1,
       getNextPageParam: (lastPage, allPages, lastPageParam) => {
-        if (lastPage.length === 0) {
+        console.log('lp', lastPage.products.length)
+        console.log(allPages.length)
+        console.log({ lastPageParam })
+        if (lastPage.products.length === 0) {
+          // or nextPage= currentPage+1 nextPage> totalPage return undefined
           return undefined
         }
-
+        // past to the query fn as queryFn: ({ pageParam }) =>
         return lastPageParam + 1
       },
     })
@@ -140,13 +145,15 @@ function Products() {
   //   console.log({ hasNextPage })
 
   // console.log({ dataUpdatedAt })
-  const [ref, entry] = useIntersectionObserver()
+  const [ref, entry] = useIntersectionObserver({
+    threshold: 0.5,
+  })
 
   useEffect(() => {
     if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
       const params = new URLSearchParams(searchParams)
 
-      params.set('page', +page + 1)
+      params.set('page', String(+page + 1))
 
       replace(`${pathname}?${params.toString()}`)
       fetchNextPage()
@@ -243,7 +250,9 @@ function Products() {
                       <Product product={repo} />
                       {index === pag.length - PAGE_SIZE ? (
                         <div ref={ref} />
-                      ) : null}
+                      ) : (
+                        <ScrollToTop smooth />
+                      )}
                     </motion.div>
                   )
                 }

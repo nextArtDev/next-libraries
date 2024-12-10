@@ -10,14 +10,14 @@ type Props = {
 function Product({ product }: Props) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <div className="relative scale-90 aspect-h-4 aspect-w-3 bg-gray-200 sm:aspect-none group-hover:opacity-75 sm:h-96">
+      {/* <div className="relative scale-90 aspect-h-4 aspect-w-3 bg-gray-200 sm:aspect-none group-hover:opacity-75 sm:h-96">
         <Image
           fill
           alt={product.title}
           src={product.images?.[0]}
           className=" h-full w-full object-cover object-center sm:h-full sm:w-full"
         />
-      </div>
+      </div> */}
 
       <div className="flex flex-1 flex-col space-y-2 p-4">
         <div className="text-sm font-medium text-gray-900">

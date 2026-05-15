@@ -116,12 +116,12 @@ function Products() {
   // const searchRef = useRef()
   const search = searchParams.get('search')
   const page = Number(searchParams.get('page'))
+  const [sort, setSort] = useQueryState('sort')
 
   // console.log({ pathname })
   // console.log({ searchParams })
 
   // const [selectedSort, setSelectedSort] = useState('asc')
-  const [sort, setSort] = useQueryState('sort')
 
   // const [search, setSearch] = useQueryState(
   //   'search',
